@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# UI Design Assets (large PNGs — stored separately, not in repo)
+# To include them, remove this rule or comment it out
+# UI-screens/
+
+# Scratch / temp scripts
+*.ps1
