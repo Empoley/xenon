@@ -5,67 +5,182 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Lock, User, KeyRound } from 'lucide-react';
+import emailjs from '@emailjs/browser';
 import XenonLogo from '@/components/ui/XenonLogo';
 import { getStoredUsers, saveUsers } from '@/lib/demoData';
 
+const EMAILJS_SERVICE_ID  = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID  || 'service_6wb4g1n';
+const EMAILJS_TEMPLATE_ID = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || 'template_afo0usg';
+const EMAILJS_PUBLIC_KEY  = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY  || 'lKL2Tb2SKCPRUMBVy';
+
 export default function ActivateAccountPage() {
   const router = useRouter();
-  const [idNumber, setIdNumber] = useState('');
-  const [email, setEmail] = useState('');
-  const [idError, setIdError] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [idNumber, setIdNumber]               = useState('');
+  const [email, setEmail]                     = useState('');
+  const [idError, setIdError]                 = useState('');
+  const [emailError, setEmailError]           = useState('');
+  const [isSubmitting, setIsSubmitting]       = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
-  const [maskedEmail, setMaskedEmail] = useState('');
+  const [maskedEmail, setMaskedEmail]         = useState('');
 
   const maskEmail = (str: string) => {
     const parts = str.split('@');
     if (parts.length < 2) return str;
-    const name = parts[0];
+    const name   = parts[0];
     const domain = parts[1];
     const prefix = name.slice(0, 3);
     return `${prefix}***@${domain}`;
   };
 
-  const handleActivate = (e: React.FormEvent) => {
+  const handleActivate = async (e: React.FormEvent) => {
     e.preventDefault();
     setIdError('');
+    setEmailError('');
 
-    if (!idNumber.trim()) {
-      setIdError('Not a valid ID or ID could not be found');
+    const cleanId    = idNumber.trim().toUpperCase();
+    const cleanEmail = email.trim();
+
+    if (!cleanId) {
+      setIdError('Enter your Employee ID to continue.');
+      return;
+    }
+
+    if (!cleanEmail) {
+      setEmailError('Enter an email address to receive your credentials.');
       return;
     }
 
     setIsSubmitting(true);
 
-    setTimeout(() => {
-      setIsSubmitting(false);
-      const users = getStoredUsers();
-      const cleanId = idNumber.trim().toUpperCase();
-      const userIndex = users.findIndex(
-        (u) => u.employee_id.toUpperCase() === cleanId
-      );
+    try {
+      // 1. Look up employee in Supabase database first
+      const { createClient } = await import('@/lib/supabase/client');
+      const supabase = createClient();
+      
+      const { data: dbUser } = await supabase
+        .from('users')
+        .select('*')
+        .eq('employee_id', cleanId)
+        .maybeSingle();
 
-      if (userIndex === -1) {
-        setIdError('Not a valid ID or ID could not be found');
+      let targetUser: any = null;
+
+      if (dbUser) {
+        targetUser = {
+          username: dbUser.default_username || dbUser.current_username || dbUser.employee_id.toLowerCase(),
+          password: dbUser.default_password || 'Xenon@2026!',
+          full_name: dbUser.full_name,
+          employee_id: dbUser.employee_id,
+        };
+      } else {
+        // Fallback to local store
+        const users = getStoredUsers();
+        const localFound = users.find(
+          (u) => u.employee_id.toUpperCase() === cleanId
+        );
+        if (localFound) {
+          targetUser = localFound;
+        }
+      }
+
+      if (!targetUser) {
+        setIdError('No account found with that Employee ID.');
+        setIsSubmitting(false);
         return;
       }
 
-      const user = users[userIndex];
+      const credentialsSummary = 
+`Your account has been activated!
 
-      // Mark account active if it was inactive
-      users[userIndex].is_active = true;
-      saveUsers(users);
+Username: ${targetUser.username}
+Temporary Password: ${targetUser.password}
+Login URL: ${typeof window !== 'undefined' ? window.location.origin : ''}/login
 
-      const targetEmail = email.trim() || user.email;
-      setMaskedEmail(maskEmail(targetEmail));
+Please log in and set your new password.`;
+
+      // 2. Send real email via EmailJS
+      await emailjs.send(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
+        {
+          to_email:     cleanEmail,
+          to_name:      targetUser.full_name ?? targetUser.username,
+          username:     targetUser.username,
+          temp_password: targetUser.password,
+          login_url:    typeof window !== 'undefined' ? `${window.location.origin}/login` : '',
+          name:         targetUser.full_name ?? targetUser.username,
+          message:      credentialsSummary,
+          title:        'Your Xenon Account Credentials',
+        },
+        EMAILJS_PUBLIC_KEY
+      );
+
+      // 3. Assign the entered email and mark account active in Supabase
+      if (dbUser) {
+        const { error: updateErr } = await supabase
+          .from('users')
+          .update({
+            status: 'active',
+            activated_at: new Date().toISOString(),
+            activation_sent_at: new Date().toISOString(),
+            email: cleanEmail,
+          })
+          .eq('employee_id', cleanId);
+
+        if (updateErr) {
+          console.error('Error assigning email in Supabase:', updateErr);
+        }
+      } else if (targetUser) {
+        // If employee only existed locally, register and assign email in Supabase
+        const { error: upsertErr } = await supabase
+          .from('users')
+          .upsert({
+            employee_id: targetUser.employee_id,
+            full_name: targetUser.full_name || targetUser.username,
+            email: cleanEmail,
+            role: 'EMPLOYEE',
+            default_username: targetUser.username,
+            default_password: targetUser.password,
+            current_username: targetUser.username,
+            current_password_hash: targetUser.password,
+            status: 'active',
+            activated_at: new Date().toISOString(),
+            activation_sent_at: new Date().toISOString(),
+          }, { onConflict: 'employee_id' });
+
+        if (upsertErr) {
+          console.error('Error inserting user to Supabase:', upsertErr);
+        }
+      }
+
+      // Also mark in local store
+      const users = getStoredUsers();
+      const userIndex = users.findIndex(
+        (u) => u.employee_id.toUpperCase() === cleanId
+      );
+      if (userIndex !== -1) {
+        users[userIndex].is_active = true;
+        saveUsers(users);
+      }
+
+      // 4. Show success modal
+      setMaskedEmail(maskEmail(cleanEmail));
       setIsSuccessModalOpen(true);
-    }, 400);
+
+    } catch (err: any) {
+      console.error('Activation email failed:', err);
+      const detail = err?.text || err?.message || (typeof err === 'string' ? err : 'Please check your connection and EmailJS configuration.');
+      setEmailError(`Failed to send email: ${detail}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleQuickFill = (idVal: string, emailVal: string) => {
     setIdNumber(idVal);
     setEmail(emailVal);
     setIdError('');
+    setEmailError('');
   };
 
   return (
@@ -95,7 +210,7 @@ export default function ActivateAccountPage() {
                 <input
                   type="text"
                   className={`auth-input ${idError ? 'auth-input-error' : ''}`}
-                  placeholder="ID Number"
+                  placeholder="Employee ID"
                   value={idNumber}
                   onChange={(e) => {
                     setIdNumber(e.target.value);
@@ -115,17 +230,23 @@ export default function ActivateAccountPage() {
                 </div>
                 <input
                   type="email"
-                  className="auth-input"
-                  placeholder="Your Email"
+                  className={`auth-input ${emailError ? 'auth-input-error' : ''}`}
+                  placeholder="Your email address"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (emailError) setEmailError('');
+                  }}
                   required
                 />
+                {emailError && (
+                  <span className="auth-error-text">{emailError}</span>
+                )}
               </div>
 
               {/* Activate Button */}
               <button type="submit" className="auth-btn-submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Activating...' : 'Activate'}
+                {isSubmitting ? 'Sending credentials…' : 'Activate'}
               </button>
 
               {/* Or Divider */}
@@ -156,7 +277,7 @@ export default function ActivateAccountPage() {
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 <button
                   type="button"
-                  onClick={() => handleQuickFill('EMP-003', 'marcus.chen@xenon.corp')}
+                  onClick={() => handleQuickFill('EMP-001', 'bundockeithwency@gmail.com')}
                   style={{
                     padding: '3px 8px',
                     borderRadius: '4px',
@@ -166,11 +287,11 @@ export default function ActivateAccountPage() {
                     fontSize: '0.725rem'
                   }}
                 >
-                  EMP-003 (New Employee)
+                  EMP-001 · Jonh Paul (Supabase)
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleQuickFill('EMP-001', 'jampol@gmail.com')}
+                  onClick={() => handleQuickFill('EMP-002', 'bundockeithwency@gmail.com')}
                   style={{
                     padding: '3px 8px',
                     borderRadius: '4px',
@@ -180,7 +301,21 @@ export default function ActivateAccountPage() {
                     fontSize: '0.725rem'
                   }}
                 >
-                  EMP-001 (jampol)
+                  EMP-002 · Alex Rivera (Supabase)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleQuickFill('EMP-004', 'leilani.santos@xenon.corp')}
+                  style={{
+                    padding: '3px 8px',
+                    borderRadius: '4px',
+                    background: '#e4e4e7',
+                    border: '1px solid #d4d4d8',
+                    cursor: 'pointer',
+                    fontSize: '0.725rem'
+                  }}
+                >
+                  EMP-004 · Leilani Santos
                 </button>
               </div>
             </div>
@@ -202,13 +337,15 @@ export default function ActivateAccountPage() {
         </div>
       </div>
 
-      {/* Activation Successful Modal (matches Activation Successful - Login.png) */}
+      {/* Activation Successful Modal */}
       {isSuccessModalOpen && (
         <div className="modal-overlay">
           <div className="activation-success-modal animate-fade-in">
             <h3>Activation Successful!</h3>
             <p>
-              Please check your email {maskedEmail} for your default password and username.
+              Your login credentials have been sent to{' '}
+              <strong>{maskedEmail}</strong>. Check your inbox and use them to
+              sign in — you will be asked to set a new password on first login.
             </p>
             <button
               type="button"
@@ -216,7 +353,7 @@ export default function ActivateAccountPage() {
               style={{ marginTop: 0, padding: '0 32px', width: 'auto', display: 'inline-flex', minWidth: 160 }}
               onClick={() => router.push('/login')}
             >
-              Back to Login
+              Go to Login
             </button>
           </div>
         </div>

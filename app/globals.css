@@ -655,3 +655,583 @@ input, select, textarea {
   }
 }
 
+/* ====================================================================
+   DASHBOARD CUSTOM STYLING (matches Dashboard.png & Dashboard - prompted.png)
+   ==================================================================== */
+.xenon-dashboard-shell {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  background: #959BA5;
+  font-family: var(--font-sans);
+  color: #111827;
+}
+
+/* Sidebar (Dusty Rose Palette) */
+.xenon-dash-sidebar {
+  width: 270px;
+  flex-shrink: 0;
+  background: linear-gradient(180deg, #BA868A 0%, #B0797D 100%);
+  display: flex;
+  flex-direction: column;
+  padding: 22px 18px 20px;
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.xenon-dash-sidebar-header {
+  padding-bottom: 16px;
+  border-bottom: 1.5px solid rgba(80, 20, 25, 0.28);
+  margin-bottom: 18px;
+}
+
+.xenon-dash-search {
+  position: relative;
+  margin-bottom: 18px;
+}
+
+.xenon-dash-search input {
+  width: 100%;
+  height: 40px;
+  border-radius: 9999px;
+  background: #DBD1D2;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  padding: 0 16px 0 38px;
+  color: #2D2123;
+  font-size: 0.92rem;
+  font-family: inherit;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.xenon-dash-search input:focus {
+  background: #ECE4E5;
+  box-shadow: 0 0 0 2px rgba(146, 82, 85, 0.35);
+}
+
+.xenon-dash-search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6E5356;
+  pointer-events: none;
+}
+
+.xenon-dash-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  flex: 1;
+}
+
+.xenon-dash-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 16px;
+  border-radius: 12px;
+  color: #FFFFFF;
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  width: 100%;
+  text-align: left;
+}
+
+.xenon-dash-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateX(2px);
+}
+
+.xenon-dash-nav-btn.active {
+  background: #8F4C50;
+  font-weight: 600;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Sidebar User Footer */
+.xenon-dash-user {
+  margin-top: auto;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.xenon-dash-user-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.xenon-dash-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.xenon-dash-user-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #FFFFFF;
+  line-height: 1.2;
+}
+
+.xenon-dash-user-role {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.xenon-dash-logout {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: #FFFFFF;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 0;
+  opacity: 0.92;
+  transition: opacity 0.15s ease;
+}
+
+.xenon-dash-logout:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+/* Dashboard Canvas */
+.xenon-dash-canvas {
+  flex: 1;
+  padding: 24px 32px 32px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.xenon-dash-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+/* Modular Panels */
+.xenon-panel {
+  border-radius: 20px;
+  position: relative;
+  padding: 20px 24px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  min-height: 190px;
+  display: flex;
+  flex-direction: column;
+}
+
+.xenon-panel-remove-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.35);
+  color: #FFFFFF;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s ease, background 0.15s ease;
+  z-index: 5;
+}
+
+.xenon-panel:hover .xenon-panel-remove-btn {
+  opacity: 1;
+}
+
+.xenon-panel-remove-btn:hover {
+  background: rgba(220, 38, 38, 0.85);
+}
+
+.xenon-panel-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #FFFFFF;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+/* Panel 1: Self Tasks */
+.panel-self-tasks {
+  background: #768E77;
+  border: 1px solid #5A725B;
+}
+
+.tasks-pill-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex: 1;
+}
+
+.task-pill-item {
+  background: #D4D7DC;
+  border-radius: 12px;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: #1F2937;
+  font-size: 0.98rem;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.task-pill-item:hover {
+  background: #E2E4E8;
+}
+
+.task-checkbox-box {
+  width: 20px;
+  height: 20px;
+  border: 2.2px solid #27272A;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.task-checkbox-box.checked {
+  background: #27272A;
+  color: #FFFFFF;
+}
+
+.task-add-btn {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #C89598;
+  color: #2E1A1C;
+  border: none;
+  padding: 6px 18px;
+  border-radius: 9999px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.task-add-btn:hover {
+  background: #D7A3A6;
+  transform: translateY(-1px);
+}
+
+/* Panel 2: Total Week Saving */
+.panel-week-savings {
+  background: #8FA8B5;
+  border: 1px solid #758E9A;
+}
+
+.savings-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  flex: 1;
+  padding: 8px 0;
+}
+
+.savings-donut-chart {
+  position: relative;
+  width: 104px;
+  height: 104px;
+  flex-shrink: 0;
+}
+
+.savings-stat-number {
+  font-size: 1.85rem;
+  font-weight: 700;
+  color: #1A2026;
+  letter-spacing: -0.02em;
+}
+
+/* Panel 3: Activity Log */
+.panel-activity-log {
+  grid-column: 1 / -1;
+  background: #374E58;
+  border: 1px solid #273A42;
+}
+
+.activity-rows-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.activity-row-pill {
+  background: #D4D8DB;
+  border-radius: 12px;
+  padding: 12px 22px;
+  display: flex;
+  align-items: center;
+  color: #1F2937;
+  font-size: 0.96rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.activity-time-segment {
+  width: 130px;
+  font-weight: 700;
+  color: #0F172A;
+  border-right: 1.5px solid #A2A7AA;
+  padding-right: 18px;
+  flex-shrink: 0;
+}
+
+.activity-desc-segment {
+  padding-left: 20px;
+  font-weight: 500;
+}
+
+/* Panel 4: Reminders */
+.panel-reminders {
+  background: #46626E;
+  border: 1px solid #334851;
+  text-align: center;
+}
+
+.reminders-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 6px 0;
+}
+
+.reminders-title {
+  color: #FFFFFF;
+  font-size: 1.45rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.reminders-time {
+  color: #D3E4EC;
+  font-size: 0.88rem;
+  margin-bottom: 18px;
+}
+
+.meeting-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #CF8F92 0%, #BA777B 100%);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 9999px;
+  padding: 8px 24px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.15s ease;
+}
+
+.meeting-pill-btn:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+/* Add Panel Card (+) */
+.panel-add-card {
+  border: 2.5px solid rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  min-height: 190px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.panel-add-card:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.75);
+  transform: translateY(-2px);
+}
+
+.panel-add-icon {
+  color: #FFFFFF;
+  opacity: 0.85;
+  transition: all 0.2s ease;
+}
+
+.panel-add-card:hover .panel-add-icon {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* Additional Dynamic Panels */
+.panel-notes {
+  background: #738062;
+  border: 1px solid #5A664B;
+}
+
+.panel-upcoming-events {
+  background: #5B4E75;
+  border: 1px solid #453A5A;
+}
+
+.panel-team-updates {
+  background: #8A5354;
+  border: 1px solid #6D3D3E;
+}
+
+.panel-documents {
+  background: #46677A;
+  border: 1px solid #334F60;
+}
+
+/* Tip Banner at bottom */
+.xenon-dash-tip {
+  align-self: center;
+  margin-top: 26px;
+  background: rgba(230, 233, 237, 0.88);
+  backdrop-filter: blur(8px);
+  border-radius: 12px;
+  padding: 10px 24px;
+  text-align: center;
+  color: #43474F;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  max-width: 640px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+/* Add New Panel Modal */
+.add-panel-modal-card {
+  background: #FFFFFF;
+  border-radius: 24px;
+  padding: 28px 24px;
+  max-width: 440px;
+  width: 100%;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+  position: relative;
+}
+
+.add-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #18181B;
+  margin-bottom: 6px;
+}
+
+.add-panel-subtitle {
+  font-size: 0.875rem;
+  color: #71717A;
+  margin-bottom: 18px;
+}
+
+.add-panel-options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.add-panel-option-btn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  border: 1.5px solid #27272A;
+  background: #FFFFFF;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+  width: 100%;
+}
+
+.add-panel-option-btn:hover {
+  background: #F4F4F5;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+}
+
+.add-panel-option-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.add-panel-option-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #18181B;
+  line-height: 1.2;
+}
+
+.add-panel-option-desc {
+  font-size: 0.775rem;
+  color: #52525B;
+  margin-top: 2px;
+}
+
+@media (max-width: 1024px) {
+  .xenon-dash-sidebar {
+    width: 240px;
+  }
+  .xenon-dash-grid {
+    grid-template-columns: 1fr;
+  }
+  .panel-activity-log {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .xenon-dashboard-shell {
+    flex-direction: column;
+  }
+  .xenon-dash-sidebar {
+    width: 100%;
+  }
+  .xenon-dash-canvas {
+    padding: 20px 16px;
+  }
+}
+

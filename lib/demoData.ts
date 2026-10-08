@@ -64,6 +64,38 @@ export const INITIAL_USERS: MockUser[] = [
     join_date: '2026-10-01',
     is_active: false, // inactive until activated!
     password: 'temp_password_123',
+  },
+  // Unactivated — pending first login
+  {
+    id: 'usr-emp-004',
+    employee_id: 'EMP-004',
+    username: 'lsantos',
+    full_name: 'Leilani Santos',
+    email: 'leilani.santos@xenon.corp',
+    phone: '+63 919 234 5678',
+    address: 'Quezon City, Metro Manila',
+    role: 'employee',
+    department_id: 'dept-eng',
+    is_first_login: true,
+    join_date: '2026-10-05',
+    is_active: false, // inactive until activated!
+    password: 'Xenon@4028',
+  },
+  // Unactivated — pending first login
+  {
+    id: 'usr-emp-005',
+    employee_id: 'EMP-005',
+    username: 'raquino',
+    full_name: 'Ramon Aquino',
+    email: 'ramon.aquino@xenon.corp',
+    phone: '+63 921 876 5432',
+    address: 'Mandaluyong City, Metro Manila',
+    role: 'employee',
+    department_id: 'dept-eng',
+    is_first_login: true,
+    join_date: '2026-10-05',
+    is_active: false, // inactive until activated!
+    password: 'Xenon@5139',
   }
 ];
 
